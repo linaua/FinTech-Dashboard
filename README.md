@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📊 FinTrack — Personal Finance Dashboard
+A full-stack personal finance dashboard powered by 
+Plaid API — the same banking infrastructure used by Venmo, 
+Robinhood, and Stripe.
 
-## Getting Started
+✨ Features
+	•	🏦 Real Bank Integration — connects to 12,000+ financial institutions via Plaid
+	•	📈 Monthly Spending Chart — visualize spending trends over 90 days
+	•	🥧 Category Breakdown — pie chart of spending by category (Food, Transport, etc.)
+	•	💳 Transaction History — paginated list of recent transactions with merchant names
+	•	📊 Key Metrics — total spent, average monthly, transaction count at a glance
+	•	🔒 Secure by Design — access tokens stored server-side, never exposed to client
+	•	⚡ Smart Caching — 1-hour Vercel KV cache to minimize API calls
 
-First, run the development server:
+🛠 Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+layer  |  technology 
+Framework - Next.js 14 
+Language - TypeScript
+Styling - Tailwind CSS v4
+Banking API - Plaid
+Charts - Recharts 
+Database - Vercel KV (Redis) 
+Deployment - Vercel
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🏗 Architecture
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+User clicks "Connect Bank"
+        │
+        ▼
+POST /api/plaid/create-link-token
+        │  Creates a short-lived link token
+        ▼
+Plaid Link UI opens (iframe)
+        │  User selects bank + enters credentials
+        ▼
+POST /api/plaid/exchange-token
+        │  Exchanges public token → access token
+        │  Access token saved to Vercel KV (server-side only)
+        ▼
+GET /api/plaid/transactions
+        │  Checks KV cache first (1hr TTL)
+        │  If miss → fetches from Plaid API
+        │  Saves to KV cache
+        ▼
+Dashboard renders with processed data
+        │  processTransactions() runs client-side
+        │  Aggregates by category + month
+        ▼
+Charts + Stats displayed
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🚀 Getting Started
+Prerequisites
+	•	Node.js 18+
+	•	Plaid account (free)
+	•	Vercel account (free)
 
-## Learn More
+🧪 Testing with Plaid Sandbox
+No real bank account needed. Use these test credentials:
 
-To learn more about Next.js, take a look at the following resources:
+Field  |   Value 
+Institution - Any 
+Username - user_good
+Password - pass_good 
+Phone - +1 415 555 0011
+OTP code - 123456
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Plaid Sandbox generates realistic transaction data automatically.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+fintech-dashboard/
+├── app/
+│   ├── api/
+│   │   └── plaid/
+│   │       ├── create-link-token/route.ts   # Creates Plaid Link session
+│   │       ├── exchange-token/route.ts       # Exchanges public → access token
+│   │       └── transactions/route.ts         # Fetches & caches transactions
+│   ├── connect/page.tsx                      # Bank connection page
+│   ├── dashboard/page.tsx                    # Main dashboard
+│   └── page.tsx                              # Landing page
+├── components/
+│   ├── PlaidLink.tsx                         # Plaid Link button component
+│   ├── SpendingChart.tsx                     # Monthly line chart
+│   ├── CategoryBreakdown.tsx                 # Category pie chart
+│   ├── TransactionList.tsx                   # Transaction table
+│   └── StatCard.tsx                          # Metric card
+├── lib/
+│   ├── plaid.ts                              # Plaid API client
+│   ├── db.ts                                 # Vercel KV helpers
+│   └── types.ts                              # TypeScript interfaces
+└── .env.example
 
-## Deploy on Vercel
+🗺 Roadmap
+	•	Budget goals and alerts
+	•	Multi-account support
+	•	Export transactions to CSV
+	•	Dark mode
+	•	Mobile app (React Native)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+📄 License
+MIT License — feel free to use this project as a reference or template.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
